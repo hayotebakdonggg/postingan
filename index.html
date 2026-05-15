@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Postingan Kesalahan Auditor</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --accent: #c8f060;
+    --accent-dim: #8faa3a;
+    --accent-red: #f06060;
+    --accent-red-dim: #aa3a3a;
+    --text: #f0f0f0;
+    --text-muted: #888;
+    --text-dim: #555;
+    --radius: 10px;
+    --font-ui: 'Syne', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 1.5rem;
+  }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; color: var(--accent); }
+  header span { font-size: 12px; font-family: var(--font-mono); color: var(--text-dim); letter-spacing: .08em; }
+
+  /* TAB NAV */
+  .tab-nav {
+    display: flex;
+    gap: 6px;
+    max-width: 1100px;
+    margin: 0 auto 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .tab-btn {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all .15s;
+    letter-spacing: .02em;
+    position: relative;
+    bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--surface); }
+  .tab-btn.active-kesalahan {
+    background: var(--surface);
+    color: var(--accent);
+    border-color: var(--border);
+    border-bottom-color: var(--surface);
+  }
+  .tab-btn.active-aman {
+    background: var(--surface);
+    color: #6ee7a0;
+    border-color: var(--border);
+    border-bottom-color: var(--surface);
+  }
+
+  /* TAB CONTENT */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel-label { font-size: 10px; font-family: var(--font-mono); letter-spacing: .14em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 2px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+  .row-inline { display: flex; gap: 8px; align-items: stretch; }
+  .row-inline input { flex: 1; }
+  input[type="text"], select, textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color .15s;
+  }
+  input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent-dim); }
+  textarea { resize: vertical; line-height: 1.7; }
+  .input-tall { height: 240px; }
+  .output-tall {
+    height: 340px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 10px 12px;
+    color: var(--text);
+    line-height: 1.8;
+    flex: 1;
+  }
+  .hint { font-size: 10px; font-family: var(--font-mono); color: var(--text-dim); line-height: 1.6; }
+  button {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 8px 16px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--surface2); color: var(--text); border-color: #444; }
+  button.accent { background: var(--accent); color: #0f0f0f; border-color: var(--accent); }
+  button.accent:hover { background: #d9ff6a; }
+  button.accent-green { background: #6ee7a0; color: #0f0f0f; border-color: #6ee7a0; }
+  button.accent-green:hover { background: #86efac; }
+  button.small { font-size: 11px; padding: 6px 12px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .divider { height: 1px; background: var(--border); margin: 2px 0; }
+  .copy-status { font-size: 11px; font-family: var(--font-mono); color: var(--accent); opacity: 0; transition: opacity .3s; align-self: center; }
+  .copy-status.show { opacity: 1; }
+
+  /* DATE PICKER */
+  .date-wrapper { position: relative; display: flex; gap: 8px; align-items: stretch; }
+  .date-display {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color .15s;
+    user-select: none;
+  }
+  .date-display:hover { border-color: var(--accent-dim); }
+  .date-display.has-value { color: var(--text); }
+  .cal-icon { opacity: .5; font-size: 13px; }
+  .cal-popup {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 999;
+    background: #1e1e1e;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 14px;
+    width: 264px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.7);
+  }
+  .cal-popup.open { display: block; }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cal-nav-title { font-size: 13px; font-weight: 600; color: var(--text); font-family: var(--font-mono); }
+  .cal-nav button { padding: 4px 10px; font-size: 15px; border-radius: 5px; min-width: 30px; }
+  .cal-days-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px; }
+  .cal-days-header span { text-align: center; font-size: 10px; font-family: var(--font-mono); color: var(--text-dim); padding: 3px 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-grid button {
+    padding: 6px 2px; font-size: 11px; font-family: var(--font-mono);
+    border-radius: 5px; text-align: center; width: 100%;
+    color: var(--text-muted); border-color: transparent; min-width: unset; letter-spacing: 0;
+  }
+  .cal-grid button:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
+  .cal-grid button.other-month { color: var(--text-dim); }
+  .cal-grid button.today-mark { border: 1px solid var(--accent-dim) !important; color: var(--accent) !important; }
+  .cal-grid button.selected { background: var(--accent) !important; color: #0f0f0f !important; border-color: var(--accent) !important; }
+  .cal-footer { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); gap: 6px; }
+  .cal-footer button { font-size: 11px; padding: 5px 10px; flex: 1; }
+  .cal-footer button.accent { background: var(--accent); color: #0f0f0f; border-color: var(--accent); }
+
+  /* CAL 2 (menu aman) */
+  .cal-grid2 button.selected { background: #6ee7a0 !important; color: #0f0f0f !important; border-color: #6ee7a0 !important; }
+  .cal-grid2 button.today-mark { border: 1px solid #3ab86e !important; color: #6ee7a0 !important; }
+  .cal-footer2 button.accent { background: #6ee7a0; color: #0f0f0f; border-color: #6ee7a0; }
+  .date-display2:hover { border-color: #3ab86e; }
+  .date-display2.has-value { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Postingan Kesalahan Auditor</h1>
+  <span>By : BrightPeopleZero</span>
+</header>
+
+<!-- TAB NAVIGATION -->
+<div class="tab-nav" style="max-width:1100px;margin:0 auto 0;">
+  <button class="tab-btn active-kesalahan" id="tab-kesalahan" onclick="switchTab('kesalahan')">&#9888; Posting Kesalahan</button>
+  <button class="tab-btn" id="tab-aman" onclick="switchTab('aman')">&#10003; Posting Tidak Ada Kesalahan</button>
+</div>
+
+<!-- ===================== TAB 1: POSTING KESALAHAN ===================== -->
+<div class="tab-content active" id="content-kesalahan">
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-label">// input — posting kesalahan</div>
+
+      <div class="field">
+        <label>tanggal</label>
+        <div class="date-wrapper" id="date-wrapper">
+          <div class="date-display" id="date-display" onclick="toggleCal(event)">
+            <span class="cal-icon">&#128197;</span>
+            <span id="date-display-text">Pilih tanggal...</span>
+          </div>
+          <button class="small" onclick="setSemalam()">Tanggal Semalam</button>
+          <div class="cal-popup" id="cal-popup">
+            <div class="cal-nav">
+              <button onclick="changeMonth(event,-1)">&#8249;</button>
+              <span class="cal-nav-title" id="cal-title"></span>
+              <button onclick="changeMonth(event,1)">&#8250;</button>
+            </div>
+            <div class="cal-days-header">
+              <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span>
+              <span>Kam</span><span>Jum</span><span>Sab</span>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div class="cal-footer">
+              <button onclick="selectToday(event)">Hari Ini</button>
+              <button onclick="clearDate(event)">Hapus</button>
+              <button class="accent" onclick="closeCal(event)">Tutup</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>nama situs</label>
+        <input type="text" id="situs" placeholder="Ketik nama situs..."/>
+      </div>
+
+      <div class="field">
+        <label>link docs jam bertugas CS</label>
+        <input type="text" id="docs-link" placeholder="https://..."/>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>data nama + link</label>
+        <p class="hint">Paste langsung dari tabel (tab-separated). Nama yang sama otomatis digabung.</p>
+        <textarea class="input-tall" id="raw-input" placeholder="NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan"></textarea>
+      </div>
+
+      <div class="actions">
+        <button class="accent" onclick="generate()">Generate Format</button>
+        <button onclick="clearAll()">Bersihkan</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">// output — posting kesalahan</div>
+      <div class="actions">
+        <button class="accent small" onclick="copyOutput('output')">Salin Semua</button>
+        <span class="copy-status" id="copy-status">&#10003; tersalin!</span>
+      </div>
+      <div class="output-tall" id="output">Output akan muncul di sini setelah klik Generate Format...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 2: POSTING TIDAK ADA KESALAHAN ===================== -->
+<div class="tab-content" id="content-aman">
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-label">// input — tidak ada kesalahan</div>
+
+      <div class="field">
+        <label>tanggal</label>
+        <div class="date-wrapper" id="date-wrapper2">
+          <div class="date-display date-display2" id="date-display2" onclick="toggleCal2(event)">
+            <span class="cal-icon">&#128197;</span>
+            <span id="date-display-text2">Pilih tanggal...</span>
+          </div>
+          <button class="small" onclick="setSemalam2()">Tanggal Semalam</button>
+          <div class="cal-popup" id="cal-popup2">
+            <div class="cal-nav">
+              <button onclick="changeMonth2(event,-1)">&#8249;</button>
+              <span class="cal-nav-title" id="cal-title2"></span>
+              <button onclick="changeMonth2(event,1)">&#8250;</button>
+            </div>
+            <div class="cal-days-header">
+              <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span>
+              <span>Kam</span><span>Jum</span><span>Sab</span>
+            </div>
+            <div class="cal-grid cal-grid2" id="cal-grid2"></div>
+            <div class="cal-footer cal-footer2">
+              <button onclick="selectToday2(event)">Hari Ini</button>
+              <button onclick="clearDate2(event)">Hapus</button>
+              <button class="accent" onclick="closeCal2(event)">Tutup</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>daftar nama situs <span style="font-size:10px;color:var(--text-dim)">(satu situs per baris)</span></label>
+        <textarea id="situs2-list" style="height:140px;" placeholder="NAMA SITUS&#10;NAMA SITUS&#10;NAMA SITUS"></textarea>
+      </div>
+
+      <div class="actions" style="margin-top:8px;">
+        <button class="accent-green" onclick="generate2()">Generate Format</button>
+        <button onclick="clearAll2()">Bersihkan</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">// output — tidak ada kesalahan</div>
+      <div class="actions">
+        <button class="accent-green small" onclick="copyOutput('output2')">Salin Semua</button>
+        <span class="copy-status" id="copy-status2">&#10003; tersalin!</span>
+      </div>
+      <div class="output-tall" id="output2">Output akan muncul di sini setelah klik Generate Format...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ===== TAB SWITCH ===== */
+  function switchTab(tab) {
+    document.getElementById('content-kesalahan').classList.toggle('active', tab === 'kesalahan');
+    document.getElementById('content-aman').classList.toggle('active', tab === 'aman');
+    const tk = document.getElementById('tab-kesalahan');
+    const ta = document.getElementById('tab-aman');
+    tk.className = 'tab-btn' + (tab === 'kesalahan' ? ' active-kesalahan' : '');
+    ta.className = 'tab-btn' + (tab === 'aman' ? ' active-aman' : '');
+  }
+
+  /* ===== SHARED ===== */
+  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  function formatDateID(d) { return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
+
+  /* ===== CALENDAR 1 (Kesalahan) ===== */
+  let selectedDate = null, calYear, calMonth;
+
+  function initCal() { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
+
+  function updateDisplay() {
+    const el = document.getElementById('date-display-text');
+    const wrap = document.getElementById('date-display');
+    if (selectedDate) { el.textContent = formatDateID(selectedDate); wrap.classList.add('has-value'); }
+    else { el.textContent = 'Pilih tanggal...'; wrap.classList.remove('has-value'); }
+  }
+
+  function renderCal() {
+    document.getElementById('cal-title').textContent = MONTHS[calMonth] + ' / ' + calYear;
+    const grid = document.getElementById('cal-grid'); grid.innerHTML = '';
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+    const today = new Date();
+    for (let i = 0; i < firstDay; i++) grid.appendChild(makeBtn1(daysInPrev - firstDay + 1 + i, calYear, calMonth - 1, true));
+    for (let d = 1; d <= daysInMonth; d++) {
+      const btn = makeBtn1(d, calYear, calMonth, false);
+      if (today.getDate()===d && today.getMonth()===calMonth && today.getFullYear()===calYear) btn.classList.add('today-mark');
+      if (selectedDate && selectedDate.getDate()===d && selectedDate.getMonth()===calMonth && selectedDate.getFullYear()===calYear) btn.classList.add('selected');
+      grid.appendChild(btn);
+    }
+    const rem = (firstDay + daysInMonth) % 7;
+    if (rem) for (let d = 1; d <= 7 - rem; d++) grid.appendChild(makeBtn1(d, calYear, calMonth + 1, true));
+  }
+
+  function makeBtn1(day, year, month, other) {
+    const btn = document.createElement('button'); btn.textContent = day;
+    if (other) btn.classList.add('other-month');
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      let y = year, m = month;
+      if (m > 11) { y += Math.floor(m/12); m = m%12; } if (m < 0) { y += Math.floor(m/12); m = ((m%12)+12)%12; }
+      selectedDate = new Date(y, m, day); calYear = y; calMonth = m; updateDisplay(); renderCal();
+    });
+    return btn;
+  }
+
+  function toggleCal(e) {
+    e.stopPropagation();
+    const popup = document.getElementById('cal-popup');
+    if (popup.classList.contains('open')) { popup.classList.remove('open'); }
+    else { if (selectedDate) { calYear = selectedDate.getFullYear(); calMonth = selectedDate.getMonth(); } renderCal(); popup.classList.add('open'); }
+  }
+  function closeCal(e) { if(e) e.stopPropagation(); document.getElementById('cal-popup').classList.remove('open'); }
+  function changeMonth(e, dir) { e.stopPropagation(); calMonth += dir; if (calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
+  function selectToday(e) { e.stopPropagation(); const t=new Date(); selectedDate=new Date(t.getFullYear(),t.getMonth(),t.getDate()); calYear=selectedDate.getFullYear(); calMonth=selectedDate.getMonth(); updateDisplay(); renderCal(); }
+  function clearDate(e) { e.stopPropagation(); selectedDate=null; updateDisplay(); renderCal(); }
+  function setSemalam() { const d=new Date(); d.setDate(d.getDate()-1); selectedDate=new Date(d.getFullYear(),d.getMonth(),d.getDate()); calYear=selectedDate.getFullYear(); calMonth=selectedDate.getMonth(); updateDisplay(); }
+
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('date-wrapper').contains(e.target)) closeCal();
+    if (!document.getElementById('date-wrapper2').contains(e.target)) closeCal2();
+  });
+
+  /* ===== CALENDAR 2 (Aman) ===== */
+  let selectedDate2 = null, calYear2, calMonth2;
+
+  function initCal2() { const n = new Date(); calYear2 = n.getFullYear(); calMonth2 = n.getMonth(); }
+
+  function updateDisplay2() {
+    const el = document.getElementById('date-display-text2');
+    const wrap = document.getElementById('date-display2');
+    if (selectedDate2) { el.textContent = formatDateID(selectedDate2); wrap.classList.add('has-value'); }
+    else { el.textContent = 'Pilih tanggal...'; wrap.classList.remove('has-value'); }
+  }
+
+  function renderCal2() {
+    document.getElementById('cal-title2').textContent = MONTHS[calMonth2] + ' / ' + calYear2;
+    const grid = document.getElementById('cal-grid2'); grid.innerHTML = '';
+    const firstDay = new Date(calYear2, calMonth2, 1).getDay();
+    const daysInMonth = new Date(calYear2, calMonth2 + 1, 0).getDate();
+    const daysInPrev = new Date(calYear2, calMonth2, 0).getDate();
+    const today = new Date();
+    for (let i = 0; i < firstDay; i++) grid.appendChild(makeBtn2(daysInPrev - firstDay + 1 + i, calYear2, calMonth2 - 1, true));
+    for (let d = 1; d <= daysInMonth; d++) {
+      const btn = makeBtn2(d, calYear2, calMonth2, false);
+      if (today.getDate()===d && today.getMonth()===calMonth2 && today.getFullYear()===calYear2) btn.classList.add('today-mark');
+      if (selectedDate2 && selectedDate2.getDate()===d && selectedDate2.getMonth()===calMonth2 && selectedDate2.getFullYear()===calYear2) btn.classList.add('selected');
+      grid.appendChild(btn);
+    }
+    const rem = (firstDay + daysInMonth) % 7;
+    if (rem) for (let d = 1; d <= 7 - rem; d++) grid.appendChild(makeBtn2(d, calYear2, calMonth2 + 1, true));
+  }
+
+  function makeBtn2(day, year, month, other) {
+    const btn = document.createElement('button'); btn.textContent = day;
+    if (other) btn.classList.add('other-month');
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      let y = year, m = month;
+      if (m > 11) { y += Math.floor(m/12); m = m%12; } if (m < 0) { y += Math.floor(m/12); m = ((m%12)+12)%12; }
+      selectedDate2 = new Date(y, m, day); calYear2 = y; calMonth2 = m; updateDisplay2(); renderCal2();
+    });
+    return btn;
+  }
+
+  function toggleCal2(e) {
+    e.stopPropagation();
+    const popup = document.getElementById('cal-popup2');
+    if (popup.classList.contains('open')) { popup.classList.remove('open'); }
+    else { if (selectedDate2) { calYear2 = selectedDate2.getFullYear(); calMonth2 = selectedDate2.getMonth(); } renderCal2(); popup.classList.add('open'); }
+  }
+  function closeCal2(e) { if(e) e.stopPropagation(); document.getElementById('cal-popup2').classList.remove('open'); }
+  function changeMonth2(e, dir) { e.stopPropagation(); calMonth2 += dir; if (calMonth2>11){calMonth2=0;calYear2++;} if(calMonth2<0){calMonth2=11;calYear2--;} renderCal2(); }
+  function selectToday2(e) { e.stopPropagation(); const t=new Date(); selectedDate2=new Date(t.getFullYear(),t.getMonth(),t.getDate()); calYear2=selectedDate2.getFullYear(); calMonth2=selectedDate2.getMonth(); updateDisplay2(); renderCal2(); }
+  function clearDate2(e) { e.stopPropagation(); selectedDate2=null; updateDisplay2(); renderCal2(); }
+  function setSemalam2() { const d=new Date(); d.setDate(d.getDate()-1); selectedDate2=new Date(d.getFullYear(),d.getMonth(),d.getDate()); calYear2=selectedDate2.getFullYear(); calMonth2=selectedDate2.getMonth(); updateDisplay2(); }
+
+  /* ===== GENERATE 1 (Kesalahan) ===== */
+  function getSitus() { return document.getElementById('situs').value.trim() || 'SITUS'; }
+
+  function generate() {
+    const tgl = selectedDate ? formatDateID(selectedDate) : 'Tanggal';
+    const situs = getSitus();
+    const docsLink = document.getElementById('docs-link').value.trim();
+    const raw = document.getElementById('raw-input').value;
+    const grouped = {}, order = [];
+
+    // Parse input yang bisa mengandung cell multi-baris (dibungkus tanda kutip oleh Excel/Sheets)
+    // Strategi: gabungkan seluruh teks, lalu pisahkan per "record" berdasarkan tab
+    // Record dimulai dari awal baris yang mengandung tab (nama \t link)
+
+    // Normalisasi: hapus \r
+    const normalized = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // Split dengan mempertimbangkan quoted fields (CSV-style dengan tab sebagai delimiter)
+    // Kita akan parse karakter per karakter
+    const records = [];
+    let i = 0;
+    const len = normalized.length;
+
+    while (i < len) {
+      // Baca field pertama (nama) - sampai tab
+      let name = '';
+      while (i < len && normalized[i] !== '\t') {
+        name += normalized[i]; i++;
+      }
+      name = name.trim();
+      if (!name) { i++; continue; }
+      if (i >= len) break;
+      i++; // lewati tab
+
+      // Baca field kedua (link) - bisa quoted (mengandung newline) atau tidak
+      let link = '';
+      if (i < len && normalized[i] === '"') {
+        // Quoted field: baca sampai penutup kutip
+        i++; // lewati kutip pembuka
+        while (i < len) {
+          if (normalized[i] === '"') {
+            if (i + 1 < len && normalized[i + 1] === '"') {
+              // Escaped quote ""
+              link += '"'; i += 2;
+            } else {
+              i++; break; // kutip penutup
+            }
+          } else {
+            link += normalized[i]; i++;
+          }
+        }
+      } else {
+        // Unquoted field: baca sampai newline
+        while (i < len && normalized[i] !== '\n') {
+          link += normalized[i]; i++;
+        }
+      }
+      // Lewati newline setelah field
+      if (i < len && normalized[i] === '\n') i++;
+
+      link = link.trim();
+      if (!name || !link) continue;
+
+      // Bersihkan tanda kutip sisa di awal/akhir jika ada
+      link = link.replace(/^"+|"+$/g, '').trim();
+
+      records.push({ name, link });
+    }
+
+    records.forEach(function(rec) {
+      if (!grouped[rec.name]) { grouped[rec.name] = []; order.push(rec.name); }
+      // Pisahkan link per baris (untuk kasus multi-link dalam satu field)
+      const linkLines = rec.link.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      linkLines.forEach(function(l) { grouped[rec.name].push(l); });
+    });
+
+    let out = 'Tanggal ' + tgl + ' ' + situs + '\n\nDocs jam bertugas CS\n' + (docsLink || '(link belum diisi)');
+    order.forEach(function(name) { out += '\n\n' + name + '\n' + grouped[name].join('\n'); });
+    document.getElementById('output').textContent = out;
+  }
+
+  function clearAll() {
+    selectedDate = null; updateDisplay();
+    document.getElementById('raw-input').value = '';
+    document.getElementById('docs-link').value = '';
+    document.getElementById('output').textContent = 'Output akan muncul di sini setelah klik Generate Format...';
+    setSemalam();
+  }
+
+  /* ===== GENERATE 2 (Tidak Ada Kesalahan) ===== */
+  function generate2() {
+    const tgl = selectedDate2 ? formatDateID(selectedDate2) : 'Tanggal';
+    const raw = document.getElementById('situs2-list').value.trim();
+    const situs_list = raw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+    if (situs_list.length === 0) { document.getElementById('output2').textContent = 'Isi daftar nama situs terlebih dahulu.'; return; }
+    let out = 'Tanggal ' + tgl + '\n\n';
+    out += situs_list.join('\n');
+    out += '\n\nTidak ada kesalahan';
+    document.getElementById('output2').textContent = out;
+  }
+
+  function clearAll2() {
+    selectedDate2 = null; updateDisplay2();
+    document.getElementById('situs2-list').value = '';
+    document.getElementById('output2').textContent = 'Output akan muncul di sini setelah klik Generate Format...';
+    setSemalam2();
+  }
+
+  /* ===== COPY ===== */
+  function copyOutput(id) {
+    const text = document.getElementById(id).textContent;
+    if (text.startsWith('Output')) return;
+    const statusId = id === 'output' ? 'copy-status' : 'copy-status2';
+    navigator.clipboard.writeText(text).then(function() {
+      const status = document.getElementById(statusId);
+      status.classList.add('show');
+      setTimeout(function() { status.classList.remove('show'); }, 2000);
+    });
+  }
+
+  /* ===== INIT ===== */
+  initCal(); setSemalam();
+  initCal2(); setSemalam2();
+</script>
+</body>
+</html>

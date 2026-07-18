@@ -284,7 +284,7 @@
       <div class="field">
         <label>data nama + link</label>
         <p class="hint">Paste langsung dari tabel (tab-separated). Nama yang sama otomatis digabung.</p>
-        <textarea class="input-tall" id="raw-input" placeholder="NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan"></textarea>
+        <textarea class="input-tall" id="raw-input" placeholder="NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#9;VALIDASI&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#9;VALIDASI&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#9;VALIDASI&#10;NAMA CS NOMOR PASPORT&#9;https://linkkesalahan&#9;VALIDASI"></textarea>
       </div>
 
       <div class="actions">
@@ -523,6 +523,7 @@
       i++; // lewati tab
 
       // Baca field kedua (link) - bisa quoted (mengandung newline) atau tidak
+      // Berhenti di tab (jika ada field KETERANGAN selanjutnya) atau newline (akhir baris)
       let link = '';
       if (i < len && normalized[i] === '"') {
         // Quoted field: baca sampai penutup kutip
@@ -540,28 +541,97 @@
           }
         }
       } else {
-        // Unquoted field: baca sampai newline
-        while (i < len && normalized[i] !== '\n') {
+        // Unquoted field: baca sampai tab atau newline
+        while (i < len && normalized[i] !== '\n' && normalized[i] !== '\t') {
           link += normalized[i]; i++;
         }
       }
+
+      // Baca field ketiga (KETERANGAN) jika ada - dipisahkan tab
+      let keterangan = '';
+      if (i < len && normalized[i] === '\t') {
+        i++; // lewati tab
+        if (i < len && normalized[i] === '"') {
+          i++; // lewati kutip pembuka
+          while (i < len) {
+            if (normalized[i] === '"') {
+              if (i + 1 < len && normalized[i + 1] === '"') {
+                keterangan += '"'; i += 2;
+              } else {
+                i++; break; // kutip penutup
+              }
+            } else {
+              keterangan += normalized[i]; i++;
+            }
+          }
+        } else {
+          while (i < len && normalized[i] !== '\n') {
+            keterangan += normalized[i]; i++;
+          }
+        }
+      }
+
       // Lewati newline setelah field
       if (i < len && normalized[i] === '\n') i++;
 
       link = link.trim();
+      keterangan = keterangan.trim();
       if (!name || !link) continue;
 
       // Bersihkan tanda kutip sisa di awal/akhir jika ada
       link = link.replace(/^"+|"+$/g, '').trim();
 
-      records.push({ name, link });
+      records.push({ name, link, keterangan });
+    }
+
+    // Klasifikasi teks KETERANGAN menjadi label suffix: ( Note ), ( Fatal ), atau kosong
+    function classifyKeterangan(ket) {
+      const norm = ket.trim().toLowerCase();
+      if (!norm) return '';
+
+      const noteList = [
+        'note',
+        'note pengecekkan tidak berujung'
+      ];
+      const fatalList = [
+        'fatal',
+        'tidak memahami permainan',
+        'tidak respon permainan',
+        'memberikan data penting ke member',
+        'salah indikator bank',
+        'mempermainkan member',
+        'capslock',
+        'tidak sopan',
+        'ubah data tanpa data lengkap',
+        'reset pass tanpa persetujuan',
+        'tidak meminta data pendukung',
+        'ss admin'
+      ];
+      const kosongkanList = [
+        'salah respon',
+        'salah informasi',
+        'telat minta maaf',
+        'tidak respon',
+        'telat respon',
+        'tidak membantu / menyelesaikan kendala dengan benar',
+        'tidak melakukan pengecekan',
+        'tidak teliti',
+        'asal spam pk',
+        'tidak minta userid'
+      ];
+
+      if (noteList.indexOf(norm) !== -1) return ' ( Note )';
+      if (fatalList.indexOf(norm) !== -1) return ' ( Fatal )';
+      if (kosongkanList.indexOf(norm) !== -1) return '';
+      return ''; // default: teks KETERANGAN tidak dikenali, dikosongkan
     }
 
     records.forEach(function(rec) {
       if (!grouped[rec.name]) { grouped[rec.name] = []; order.push(rec.name); }
+      const suffix = classifyKeterangan(rec.keterangan);
       // Pisahkan link per baris (untuk kasus multi-link dalam satu field)
       const linkLines = rec.link.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      linkLines.forEach(function(l) { grouped[rec.name].push(l); });
+      linkLines.forEach(function(l) { grouped[rec.name].push(l + suffix); });
     });
 
     let out = 'Tanggal ' + tgl + ' ' + situs + '\n\nDocs jam bertugas CS\n' + (docsLink || '(link belum diisi)');

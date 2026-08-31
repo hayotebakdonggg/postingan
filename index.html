@@ -654,8 +654,9 @@
     const situs_list = raw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
     if (situs_list.length === 0) { document.getElementById('output2').textContent = 'Isi daftar nama situs terlebih dahulu.'; return; }
     let out = 'Tanggal ' + tgl + '\n\n';
+    out += 'Situs yang tidak ada kesalahan :\n\n';
     out += situs_list.join('\n');
-    out += '\n\nTidak ada kesalahan';
+
     document.getElementById('output2').textContent = out;
   }
 
